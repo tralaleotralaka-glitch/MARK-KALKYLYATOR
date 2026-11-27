@@ -31,9 +31,11 @@ npm test
 npm run build
 ```
 
-## Android: готовый APK из GitHub Actions
+## Android: готовый APK
 
-Приложение работает на Android 6.0 (API 23) и новее. После каждого `push` запускается workflow **«Собрать Android APK»**. Чтобы скачать результат:
+Приложение работает на Android 6.0 (API 23) и новее. [Скачать готовый Pyaterka.apk из GitHub Releases](https://github.com/tralaleotralaka-glitch/MARK-KALKYLYATOR/releases/download/android-v1.0.0-debug/Pyaterka.apk).
+
+После каждого `push` запускается workflow **«Собрать Android APK»**. Чтобы скачать более свежую тестовую сборку:
 
 1. На GitHub откройте вкладку **Actions** и выберите последний успешный запуск **«Собрать Android APK»** нужной ветки.
 2. В разделе **Artifacts** скачайте **Pyaterka-APK** и распакуйте архив.
