@@ -1,0 +1,41 @@
+name: Опубликовать APK на GitHub
+
+on:
+  push:
+    branches:
+      - arena/db1019af-mark-kalkylyator
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Опубликовать готовый APK
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/apk-release"
+          if ! gh run download 45962559350 --name Pyaterka-APK --dir "$RUNNER_TEMP/apk-release" > "$RUNNER_TEMP/download.log" 2>&1; then
+            echo '::error::Could not download the completed APK artifact.'
+            exit 1
+          fi
+          mv "$RUNNER_TEMP/apk-release/pyaterka-debug.apk" "$RUNNER_TEMP/apk-release/Pyaterka.apk"
+          printf '%s  %s\n' 'dd315ba6af778370c1c04320e375b55ba401b6cac9e50f81ad46f80db170aeb6' "$RUNNER_TEMP/apk-release/Pyaterka.apk" | sha256sum --check
+          if ! gh release create android-v1.0.0-debug "$RUNNER_TEMP/apk-release/Pyaterka.apk" \
+            --target 70f6234ade3bc1605e39a35c60e2f080132e5023 \
+            --title 'Пятёрка 1.0 — тестовая версия для Android' \
+            --prerelease \
+            --notes 'Установочный APK для Android 6.0 и новее. Это отладочная сборка: при установке другой сборки может понадобиться переустановка, при которой удалятся оценки. Оценки из веб-версии не переносятся автоматически.' \
+            > "$RUNNER_TEMP/release.log" 2>&1; then
+            details=$(tail -c 2000 "$RUNNER_TEMP/release.log" | tr '\n' ' ' | sed -E 's#https?://[^ ]+#<url>#g')
+            echo "::error::Could not publish APK. $details"
+            exit 1
+          fi
+          echo '::notice title=APK published::GitHub release android-v1.0.0-debug is ready.'
