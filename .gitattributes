@@ -1,0 +1,2 @@
+# Keep the Gradle Windows launcher usable on Windows while storing normalized text.
+*.bat text eol=crlf

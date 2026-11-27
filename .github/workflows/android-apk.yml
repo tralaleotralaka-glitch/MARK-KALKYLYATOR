@@ -1,0 +1,64 @@
+name: Собрать Android APK
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    name: Проверка и сборка APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Скачать исходный код
+        uses: actions/checkout@v4
+
+      - name: Установить Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Установить Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Подготовить Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Установить Android SDK 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Установить зависимости
+        run: npm ci
+
+      - name: Проверить расчёты
+        run: npm test
+
+      - name: Собрать сайт и скопировать его в Android-проект
+        run: npm run android:sync
+
+      - name: Подготовить Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Собрать установочный APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Подготовить файл для скачивания
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk pyaterka-debug.apk
+
+      - name: Сохранить APK как артефакт
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pyaterka-APK
+          path: pyaterka-debug.apk
+          if-no-files-found: error
+          retention-days: 30
